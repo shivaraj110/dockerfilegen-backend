@@ -15,15 +15,17 @@ const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 app.post('/chat', async (req: Request, res: Response) => {
 	const { framework } = req.body;
+	const { database, orm } = req.body ?? { database: 'no', orm: 'no' };
 	const llmResponse = await ai.models.generateContent({
 		model: "gemini-2.5-flash",
 		config: {
-			"systemInstruction": "you are a senior devops engineer and decides how the dockerfile look like just by knowing the framework. Your job is to only respond with a dockerfile",
+			"systemInstruction": "you are a senior devops engineer and decides how the dockerfile would be written just by knowing the framework and other parameters like database and ORMs. Your job is to only respond with a precise dockerfile",
 			thinkingConfig: {
 				thinkingBudget: 0,
 			}
 		},
-		contents: `give a docker file for a ${framework} application with Postgres database used with prisma`,
+		contents: `give an optimal docker file for a ${framework} application with ${database + " database"} used with ${orm + " ORM"}. The dockerfile should be precise and only contain the dockerfile code.
+Do not add any comments or explanations.`,
 
 	});
 	res.send(llmResponse.text);

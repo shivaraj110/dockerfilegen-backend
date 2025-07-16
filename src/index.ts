@@ -14,13 +14,14 @@ app.get('/', (res: Response) => {
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 app.post('/chat', async (req: Request, res: Response) => {
-	const { framework } = req.body;
+	const { framework, env } = req.body;
 	const { database, orm } = req.body ?? { database: 'no', orm: 'no' };
 	const { version } = req.body ?? { version: 'latest stable' };
 	const llmResponse = await ai.models.generateContent({
 		model: "gemini-2.5-flash",
 		config: {
-			"systemInstruction": "you are a senior devops engineer and decides how the dockerfile would be written just by knowing the framework and other parameters like database and ORMs. Your job is to only respond with a precise dockerfile without any comments or explanations.",
+			"systemInstruction": `you are a senior devops engineer and decides how the dockerfile would be written just by knowing the framework and other parameters like database and ORMs.
+Your job is to only respond with aprecise dockerfile strictly without any comments or explanations.`,
 			thinkingConfig: {
 				thinkingBudget: 0,
 			}
@@ -29,7 +30,9 @@ app.post('/chat', async (req: Request, res: Response) => {
 Do not add any comments or explanations. in case of nodejs,do the same with assuming all scripts are available eg:dev,build & serve.`,
 
 	});
-	res.send(llmResponse.text);
+	res.json({
+		dockerfile: llmResponse.text
+	})
 
 });
 
